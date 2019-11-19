@@ -1,0 +1,12 @@
+{
+  "name": "mo-pkg",
+  "version": "0.0.0",
+  "description": "Global command for creating packages the way Mo likes",
+  "main": "dist/index.js",
+  "repository": "https://github.com/mothepro/mo-pkg",
+  "author": "Maurice Prosper",
+  "license": "MIT",
+  "devDependencies": {
+    "typescript": "^3.7.2"
+  }
+}
