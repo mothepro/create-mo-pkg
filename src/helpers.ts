@@ -26,6 +26,13 @@ export const writeToFile = async (filename: string, contents: string) =>
 export const readSampleFile = async (filename: string) =>
   await readFileAsync(join('sample', filename), { encoding: 'utf-8' })
 
+export const capitalCase = (str: string) =>
+  str
+    .replace(/-/g, ' ')
+    .split(' ')
+    .map(word => word.substr(0, 1).toUpperCase() + word.substr(1))
+    .join(' ')
+
 /** Formats a JSONable value and replaces */
 export const jsonReplacer = (json: any, map: { [replacementKey: string]: any }) =>
   JSON.stringify(

@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-import { assert, makeAndChange, run, writeToFile, readSampleFile, jsonReplacer } from './helpers'
+import { assert, makeAndChange, run, writeToFile, readSampleFile, jsonReplacer, capitalCase } from './helpers'
 import samplePackageJson from '../sample/package.json'
 
 interface PackageDetails {
@@ -38,8 +38,7 @@ async function go({ pkgName, author, repository }: PackageDetails) {
   }))
   console.log('Generated package.json')
 
-  const license = await readSampleFile('LICENSE')
-  writeToFile('LICENSE', license
+  writeToFile('LICENSE', (await readSampleFile('LICENSE'))
     .replace(/\[yyyy\]/g, new Date().getFullYear().toString())
     .replace(/\[name of copyright owner\]/g, author))
   console.log('Added Apache2 License')
@@ -47,7 +46,10 @@ async function go({ pkgName, author, repository }: PackageDetails) {
   await writeToFile('.gitignore', await readSampleFile('.gitignore'))
   console.log('Added .gitignore')
 
-  await writeToFile('README.md', await readSampleFile('README.md'))
+  await writeToFile('README.md', (await readSampleFile('README.md'))
+    .replace(/_NAME_/g, pkgName)
+    .replace(/_DESC_/g, pkgName)
+    .replace(/_NICENAME_/g, capitalCase(pkgName)))
   console.log('Added README')
 
   await run('git', 'init')
