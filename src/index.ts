@@ -1,6 +1,11 @@
 #!/usr/bin/env node
-import { assert, makeAndChange, run, writeToFile } from './helpers'
-import samplePackageJson from './sample/package.json'
+import { assert, makeAndChange, run, writeToFile, readSampleFile } from './helpers'
+import samplePackageJson from '../sample/package.json'
+
+interface PackageDetails {
+  pkgName: string
+  author: string
+}
 
 const starterDevPkgs = [
   '@types/mocha',
@@ -11,35 +16,24 @@ const starterDevPkgs = [
   'should-sinon',
   'sinon',
   'typescript',
-]
+],
+  pkgJsonReplacer = ({ pkgName, author }: PackageDetails) =>
+    (key: string, value: string) => {
+      console.log('>', key, value)
+      switch (key) {
+        case 'name':
+          return pkgName
+        
+        case 'author':
+          return author
 
-function pkgJsonReplacer(key: string, value: string) {
-  switch (key) {
-    case 'name':
-      return pkgName
+        case 'repository':
+          return `https://github.com/mothepro/${pkgName}`
 
-    case 'repository':
-      return `https://github.com/mothepro/${pkgName}`
-
-    default:
-      return value
-  }
-}
-
-const [pkgName] = process.argv.slice(2)
-
-async function go() {
-    assert(!!pkgName, 'New package must have a name')
-    
-    await makeAndChange(pkgName)
-    console.log('Made new package ', pkgName)
-    
-    await writeToFile('package.json', JSON.stringify(samplePackageJson, pkgJsonReplacer, 2))
-    console.log('Generated package.json.')
-
-    await run('yarn', 'add', '-D', ...starterDevPkgs)
-    console.log('Added starter dev dependencies.', ...starterDevPkgs)
-}
+        default:
+          return value
+      }
+    }
 
 /**
 4. Install a strict typescript
@@ -49,7 +43,25 @@ async function go() {
 8. Write a simple `.gitignore` file
 9. Initizialize the git repo
 10. Commit the initial commit!
-
  */
+async function go({ pkgName, author }: PackageDetails) {
+  await makeAndChange(pkgName)
+  console.log('Made new package', pkgName)
 
- go()
+  await writeToFile('package.json', JSON.stringify(samplePackageJson, pkgJsonReplacer({ pkgName, author }), 2))
+  console.log('Generated package.json')
+
+  await run('yarn', 'add', '-D', ...starterDevPkgs)
+  console.log('Added starter dev dependencies', ...starterDevPkgs)
+
+  const license = await readSampleFile('LICENSE')
+  writeToFile('LICENSE', license
+    .replace(/\[yyyy\]/g, new Date().getFullYear().toString())
+    .replace(/\[name of copyright owner\]/g, author))
+}
+
+
+go({
+  pkgName: assert(process.argv[2], 'New package must have a name'),
+  author: "Maurice Prosper",
+})
