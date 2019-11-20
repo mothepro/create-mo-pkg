@@ -5,6 +5,7 @@ import samplePackageJson from '../sample/package.json'
 interface PackageDetails {
   pkgName: string
   author: string
+  repository: string
 }
 
 const starterDevPkgs = [
@@ -26,18 +27,14 @@ const starterDevPkgs = [
   'importly',
 ].sort()
 
-/**
-9. Initizialize the git repo
-10. Commit the initial commit!
- */
-async function go({ pkgName, author }: PackageDetails) {
+async function go({ pkgName, author, repository }: PackageDetails) {
   await makeAndChange(pkgName)
   console.log('Made new folder', pkgName)
 
   await writeToFile('package.json', jsonReplacer(samplePackageJson, {
     name: pkgName,
-    repostiory: `https://github.com/mothepro/${pkgName}`,
     author,
+    repository,
   }))
   console.log('Generated package.json')
 
@@ -45,22 +42,29 @@ async function go({ pkgName, author }: PackageDetails) {
   writeToFile('LICENSE', license
     .replace(/\[yyyy\]/g, new Date().getFullYear().toString())
     .replace(/\[name of copyright owner\]/g, author))
-  console.log('Add Apache2 License')
+  console.log('Added Apache2 License')
+
+  await writeToFile('.gitignore', await readSampleFile('.gitignore'))
+  console.log('Added .gitignore')
+
+  await writeToFile('README.md', await readSampleFile('README.md'))
+  console.log('Added README')
 
   await run('git', 'init')
-  await run('git', 'remote', 'add', 'origin', `https://github.com/mothepro/${pkgName}.git`)
-  console.log('Git repo created')
+  await run('git', 'remote', 'add', 'origin', repository + '.git')
+  console.log('Initialized Git repo')
 
-  console.log('Adding starter dev dependencies', ...starterDevPkgs)
   await run('yarn', 'add', '-D', ...starterDevPkgs)
+  console.log('Added starter dev dependencies', ...starterDevPkgs)
 
   await run('git', 'add', '.')
   await run('git', 'commit', '-m', '"Init Commit!"')
   console.log('Successfully created', pkgName)
 }
 
-
+const pkgName = assert(process.argv[2], 'New package must have a name')
 go({
-  pkgName: assert(process.argv[2], 'New package must have a name'),
+  pkgName,
   author: "Maurice Prosper",
-})
+  repository: `https://github.com/mothepro/${pkgName}`,
+}).catch(console.error)
