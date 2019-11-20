@@ -5,10 +5,14 @@
     "module": "commonjs",
     "declaration": true,
     "sourceMap": true,
-    "composite": true,
+    "composite": false,
     "outDir": "dist",
     "strict": true,
     "esModuleInterop": true,
-    "forceConsistentCasingInFileNames": true
-  }
+    "forceConsistentCasingInFileNames": true,
+    "resolveJsonModule": true
+  },
+  "include": [
+    "src/*"
+  ]
 }

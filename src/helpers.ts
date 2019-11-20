@@ -1,21 +1,24 @@
 import { promisify } from 'util'
-import { mkdir } from 'fs'
+import { mkdir, writeFile } from 'fs'
 import { exec } from 'child_process'
+import { join } from 'path'
 
 const execAsync = promisify(exec),
-  mkdirAsync = promisify(mkdir)
+  mkdirAsync = promisify(mkdir),
+  writeFileAsync = promisify(writeFile)
 
 let cwd: string
 
 /** Makes and changes into a new directory. */
-export async function makeAndChange(dir: string) {
-  cwd = dir
-  await mkdirAsync(cwd)
-}
+export const makeAndChange = async (dir: string) => 
+  await mkdirAsync(cwd = dir)
 
 /** Runs a command and returns the value from stdout. */
 export const run = async (cmd: string, ...args: string[]) =>
-  (await execAsync([cmd, ...args].join(' '), {cwd})).stdout
+  (await execAsync([cmd, ...args].join(' '), { cwd })).stdout
+  
+export const writeToFile = async (filename: string, contents: string) =>
+  await writeFileAsync(join(cwd, filename), contents)
 
 
 /** Ends the process if the expression is falsy */
