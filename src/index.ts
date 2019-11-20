@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-import { assert, makeAndChange, run, writeToFile, readSampleFile } from './helpers'
+import { assert, makeAndChange, run, writeToFile, readSampleFile, jsonReplacer } from './helpers'
 import samplePackageJson from '../sample/package.json'
 
 interface PackageDetails {
@@ -8,37 +8,25 @@ interface PackageDetails {
 }
 
 const starterDevPkgs = [
-  '@types/mocha',
-  '@types/should-sinon',
-  'mocha',
-  'np',
-  'should',
-  'should-sinon',
-  'sinon',
   'typescript',
-],
-  pkgJsonReplacer = ({ pkgName, author }: PackageDetails) =>
-    (key: string, value: string) => {
-      console.log('>', key, value)
-      switch (key) {
-        case 'name':
-          return pkgName
-        
-        case 'author':
-          return author
 
-        case 'repository':
-          return `https://github.com/mothepro/${pkgName}`
+  '@types/mocha',
+  'mocha',
 
-        default:
-          return value
-      }
-    }
+  'should', // includes types now :)
+  'should-sinon',
+
+  '@types/should-sinon',
+  'sinon',
+  
+  'np', // for publishing
+
+  // for ES module import map gen
+  // 'es-module-shims', // not needed since we just hardcode the unpkg usage in the HMTL
+  'importly',
+].sort()
 
 /**
-4. Install a strict typescript
-5. Install `ttypscript`, `import-map-shim` to build ES modules
-6. Install testing framework (`mocha` & `should` and their types)
 7. Build a sample `README.md` file
 8. Write a simple `.gitignore` file
 9. Initizialize the git repo
@@ -46,18 +34,25 @@ const starterDevPkgs = [
  */
 async function go({ pkgName, author }: PackageDetails) {
   await makeAndChange(pkgName)
-  console.log('Made new package', pkgName)
+  console.log('Made new folder', pkgName)
 
-  await writeToFile('package.json', JSON.stringify(samplePackageJson, pkgJsonReplacer({ pkgName, author }), 2))
+  await writeToFile('package.json', jsonReplacer(samplePackageJson, {
+    name: pkgName,
+    repostiory: `https://github.com/mothepro/${pkgName}`,
+    author,
+  }))
   console.log('Generated package.json')
-
-  await run('yarn', 'add', '-D', ...starterDevPkgs)
-  console.log('Added starter dev dependencies', ...starterDevPkgs)
 
   const license = await readSampleFile('LICENSE')
   writeToFile('LICENSE', license
     .replace(/\[yyyy\]/g, new Date().getFullYear().toString())
     .replace(/\[name of copyright owner\]/g, author))
+  console.log('Add Apache2 License')
+
+  console.log('Adding starter dev dependencies', ...starterDevPkgs)
+  await run('yarn', 'add', '-D', ...starterDevPkgs)
+
+  console.log('Successfully created', pkgName)
 }
 
 

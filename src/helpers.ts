@@ -11,20 +11,30 @@ const execAsync = promisify(exec),
 let cwd: string
 
 /** Makes and changes into a new directory. */
-export const makeAndChange = async (dir: string) => 
+export const makeAndChange = async (dir: string) =>
   await mkdirAsync(cwd = dir)
 
 /** Runs a command and returns the value from stdout. */
 export const run = async (cmd: string, ...args: string[]) =>
   (await execAsync([cmd, ...args].join(' '), { cwd })).stdout
-  
+
 /** Write a file to the new package. */
 export const writeToFile = async (filename: string, contents: string) =>
-await writeFileAsync(join(cwd, filename), contents)
+  await writeFileAsync(join(cwd, filename), contents)
 
 /** Read a file in the sample folder. */
 export const readSampleFile = async (filename: string) =>
   await readFileAsync(join('sample', filename), { encoding: 'utf-8' })
+
+/** Formats a JSONable value and replaces */
+export const jsonReplacer = (json: any, map: { [replacementKey: string]: any }) =>
+  JSON.stringify(
+    json,
+    (key: string, value: any) =>
+      typeof map[key] != 'undefined'
+        ? map[key]
+        : value,
+    2)
 
 /** Ends the process if the expression is falsy */
 export function assert(expression: any, str = `Didn't expect ${expression} to be false.`) {
