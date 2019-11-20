@@ -27,8 +27,6 @@ const starterDevPkgs = [
 ].sort()
 
 /**
-7. Build a sample `README.md` file
-8. Write a simple `.gitignore` file
 9. Initizialize the git repo
 10. Commit the initial commit!
  */
@@ -49,9 +47,15 @@ async function go({ pkgName, author }: PackageDetails) {
     .replace(/\[name of copyright owner\]/g, author))
   console.log('Add Apache2 License')
 
+  await run('git', 'init')
+  await run('git', 'remote', 'add', 'origin', `https://github.com/mothepro/${pkgName}.git`)
+  console.log('Git repo created')
+
   console.log('Adding starter dev dependencies', ...starterDevPkgs)
   await run('yarn', 'add', '-D', ...starterDevPkgs)
 
+  await run('git', 'add', '.')
+  await run('git', 'commit', '-m', '"Init Commit!"')
   console.log('Successfully created', pkgName)
 }
 
