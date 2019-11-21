@@ -1,6 +1,12 @@
 #!/usr/bin/env node
-import { assert, makeAndChange, run, writeToFile, readSampleFile, jsonReplacer, capitalCase } from './helpers'
-import samplePackageJson from '../sample/package.json'
+import assert from './src/assert'
+import capitalCase from './src/captialCase'
+import jsonReplacer from './src/jsonReplacer'
+import makeAndChangeDir from './src/makeAndChangeDir'
+import readSampleFile from './src/readSampleFile'
+import run from './src/run'
+import samplePackageJson from './sample/package.json'
+import writeToFile from './src/writeToFile'
 
 interface PackageDetails {
   pkgName: string
@@ -28,7 +34,7 @@ const starterDevPkgs = [
 ].sort()
 
 async function go({ pkgName, author, repository }: PackageDetails) {
-  await makeAndChange(pkgName)
+  await makeAndChangeDir(pkgName)
   console.log('Made new folder', pkgName)
 
   await writeToFile('package.json', jsonReplacer(samplePackageJson, {
