@@ -3,15 +3,20 @@
   "version": "0.0.0",
   "description": "Global command for creating packages the way Mo likes",
   "main": "dist/index.js",
+  "bin": "dist/index.js",
   "repository": "",
   "author": "Maurice Prosper",
   "license": "MIT",
   "devDependencies": {
     "@types/node": "^12.12.9",
+    "@types/yargs": "^13.0.3",
     "typescript": "^3.7.2"
   },
   "scripts": {
     "build": "tsc",
     "prepublishOnly": "npm run build"
+  },
+  "dependencies": {
+    "yargs": "^15.0.2"
   }
 }

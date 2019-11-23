@@ -6,7 +6,7 @@
     "declaration": true,
     "sourceMap": true,
     "composite": false,
-    "outDir": "dist",
+    "outDir": "dist/npm",
     "strict": true,
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
