@@ -11,10 +11,133 @@ import writeToFile from './src/writeToFile'
 import readSampleFile from './src/readSampleFile'
 import captialCase from './src/captialCase'
 
-// Because top level await isn't allowed
-async function go() {
-  const log = (...strs: string[]) => verbose && console.log(...strs)
+const {
+  _: [name],
+  author,
+  username,
+  type,
+  verbose,
+  description,
+  scoped,
+} = strict()
+  .demandCommand()
+  .version(version)
+  .help()
+  .usage(`${thisPkgDescription}
+  Usage: yarn create ${thisPkgName.replace('create-', '')} <package-name> [options]
+  `.trim())
+  .option('verbose', {
+    alias: 'v',
+    description: 'Whether to output status of package creation',
+    default: false,
+    type: 'boolean',
+  })
+  .option('author', {
+    alias: 'a',
+    type: 'string',
+    description: 'The name of the package\'s author',
+    defaultDescription: 'Config value in Yarn\'s \'init-author-name\'',
+    default: runSync('yarn', 'config', 'get', 'init-author-name'),
+    demandOption: true,
+  })
+  .option('username', {
+    alias: 'u',
+    type: 'string',
+    description: 'The Github username of the package\'s author',
+    defaultDescription: 'Config value in Yarn\'s \'init-author-username\'',
+    default: runSync('yarn', 'config', 'get', 'init-author-username'),
+    demandOption: true,
+  })
+  .option('description', {
+    alias: 'desc',
+    type: 'string',
+    description: 'Description for the new package',
+    default: '',
+  })
+  .option('type', {
+    alias: 't',
+    description: 'The type of package being made',
+    defaultDescription: 'An ES Module without a demo',
+    default: 'esm',
+    choices: ['esm', 'esm-demo', 'lit-app'] // TODO add support for CLI
+  })
+  .option('scoped', {
+    alias: 's',
+    description: 'Whether to package is scoped for the given user',
+    default: false,
+    type: 'boolean',
+  })
+    .argv
 
+// The NPM scripts and dependencies that can be used based on the type of package being created
+const log = (...strs: string[]) => verbose && console.log(...strs),
+  dependencies: string[] = [],
+  devDependencies = [
+    'typescript',
+    'np', // for publishing
+  ]
+
+let scripts: object = {
+  // Build JS files
+  'build:npm': 'tsc',
+  'build:esm': 'tsc -p tsconfig.esm.json',
+  'build': 'npm run build:npm && npm run build:esm',
+
+  'pretest': 'npm run build:npm',
+  'test': 'mocha -r should -r should-sinon dist/test/*.js',
+
+  'prerelease': 'npm run build',
+  'release': 'np',
+}
+
+switch (type) {
+  case 'lit-app':
+    dependencies.push('lit-element')
+    // fallthru
+
+  case 'esm-demo': // Has demo or is an app
+    scripts = {
+      ...scripts,
+
+      // import maps
+      'map:dev': 'importly --host node_modules < package.json > dist/demo/import-map.json',
+      'map:prod': 'importly --host unpkg < package.json > dist/demo/import-map.json',
+
+      // copy HTML before building ES module
+      'prebuild:esm': 'copy demo/index.html dist',
+
+      // Building demo for prod and local
+      'build:esm:dev': 'npm run map:dev && npm run build:esm',
+      'build:esm:prod': 'npm run map:prod && npm run build:esm',
+
+      // Deploy demo in branch, always when releasing a new version
+      'predeploy': 'npm run build:prod',
+      'deploy': 'gh-pages -d dist/demo',
+      'prerelease': 'npm run build:npm && npm run deploy',
+    }
+
+    devDependencies.push(
+      // 'es-module-shims', // not needed since we just hardcode the unpkg usage in the HMTL
+      'importly', // import map generation
+      'gh-pages', // push project on github pages
+    )
+    // fallthru
+
+  case 'esm':
+    devDependencies.push(
+      '@types/mocha',
+      'mocha',
+
+      'should', // includes types now :)
+      'should-sinon',
+
+      '@types/should-sinon',
+      'sinon',
+    )
+    break
+}
+
+(async function () { // Because top level await isn't allowed
   await makeAndChangeDir(name)
   log('Made new folder', name)
 
@@ -65,135 +188,4 @@ async function go() {
   await run('git', 'add', '.')
   await run('git', 'commit', '-m', '"Init Commit!"')
   log(`Successfully created ${name}`)
-}
-
-// Get args
-const {
-  _: [name],
-  author,
-  username,
-  type,
-  verbose,
-  description,
-  scoped,
-} = strict()
-  .demandCommand()
-  .version(version)
-  .help()
-  .usage(`${thisPkgDescription}
-  Usage: yarn create ${thisPkgName.replace('create-', '')} <package-name> [options]`)
-  .option('verbose', {
-    alias: 'v',
-    description: 'Whether to output status of package creation',
-    default: false,
-    type: 'boolean',
-  })
-  .option('author', {
-    alias: 'a',
-    type: 'string',
-    description: 'The name of the package\'s author',
-    defaultDescription: 'Config value in Yarn\'s \'init-author-name\'',
-    default: runSync('yarn', 'config', 'get', 'init-author-name'),
-    demandOption: true,
-  })
-  .option('username', {
-    alias: 'u',
-    type: 'string',
-    description: 'The Github username of the package\'s author',
-    defaultDescription: 'Config value in Yarn\'s \'init-author-username\'',
-    default: runSync('yarn', 'config', 'get', 'init-author-username'),
-    demandOption: true,
-  })
-  .option('description', {
-    alias: 'desc',
-    type: 'string',
-    description: 'Description for the new package',
-    default: '',
-  })
-  .option('type', {
-    alias: 't',
-    description: 'The type of package being made',
-    defaultDescription: 'An ES Module without a demo',
-    default: 'esm',
-    choices: ['esm', 'esm-demo', 'lit-app'] // TODO add support for CLI
-  })
-  .option('scoped', {
-    alias: 's',
-    description: 'Whether to package is scoped for the given user',
-    default: false,
-    type: 'boolean',
-  })
-    .argv
-
-// The NPM scripts and dependencies that can be used based on the type of package being created
-let scripts: object = {
-  // Build JS files
-  'build:npm': 'tsc',
-  'build:esm': 'tsc -p tsconfig.esm.json',
-  'build': 'npm run build:npm && npm run build:esm',
-
-  'pretest': 'npm run build:npm',
-  'test': 'mocha -r should -r should-sinon dist/test/*.js',
-
-  'prerelease': 'npm run build',
-  'release': 'np',
-}
-const
-  dependencies: string[] = [],
-  devDependencies = [
-    'typescript',
-    'np', // for publishing
-  ]
-
-switch (type) {
-  case 'esm':
-    devDependencies.push(
-      '@types/mocha',
-      'mocha',
-
-      'should', // includes types now :)
-      'should-sinon',
-
-      '@types/should-sinon',
-      'sinon',
-    )
-    break
-
-  case 'lit-app':
-    dependencies.push(
-      // 'es-module-shims', // not needed since we just hardcode the unpkg usage in the HMTL
-      'importly', // create import maps
-      'lit-element',
-    )
-    // fallthru
-
-  case 'esm-demo': // Has demo or is an app
-    scripts = {
-      ...scripts,
-
-      // import maps
-      'map:dev':  'importly --host node_modules < package.json > dist/demo/import-map.json',
-      'map:prod': 'importly --host unpkg < package.json > dist/demo/import-map.json',
-
-      // copy HTML before building ES module
-      'prebuild:esm': 'copy demo/index.html dist',
-
-      // Building demo for prod and local
-      'build:esm:dev':  'npm run map:dev && npm run build:esm',
-      'build:esm:prod': 'npm run map:prod && npm run build:esm',
-
-      // Deploy demo in branch, always when releasing a new version
-      'predeploy': 'npm run build:prod',
-      'deploy': 'gh-pages -d dist/demo',
-      'prerelease': 'npm run build:npm && npm run deploy',
-    }
-
-    devDependencies.push(
-      'importly', // import map generation
-      'gh-pages', // push project on github pages
-    )
-    break
-}
-
-// Run and log errors
-go().catch(console.error)
+})().catch(console.error)
