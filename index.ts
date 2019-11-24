@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 import { strict } from 'yargs'
-import { version, name as thisPkgName, description } from './package.json'
+import { version, name as thisPkgName, description as thisPkgDescription } from './package.json'
 import samplePackageJson from './sample/package.json'
 import run, { runSync } from './src/run'
 import makeAndChangeDir from './src/makeAndChangeDir'
@@ -58,12 +58,13 @@ const {
   username,
   type,
   verbose,
+  description,
   scoped,
 } = strict()
   .demandCommand()
   .version(version)
   .help()
-  .usage(`${description}
+  .usage(`${thisPkgDescription}
   Usage: yarn create ${thisPkgName.replace('create-', '')} <package-name> [options]`)
   .option('author', {
     alias: 'a',
@@ -79,6 +80,13 @@ const {
     description: 'The Github username of the package\'s author',
     defaultDescription: 'Config value in Yarn\'s \'init-author-username\'',
     default: runSync('yarn', 'config', 'get', 'init-author-username'),
+    demandOption: true,
+  })
+  .option('description', {
+    alias: 'desc',
+    type: 'string',
+    description: 'Description for the new package',
+    default: '',
     demandOption: true,
   })
   .option('type', {
