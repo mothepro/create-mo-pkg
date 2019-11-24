@@ -5,7 +5,7 @@ import samplePackageJson from './sample/package.json'
 import sampleTsConfigJson from './sample/tsconfig.json'
 import sampleTsEsmConfigJson from './sample/tsconfig.esm.json'
 import run, { runSync } from './src/run'
-import makeAndChangeDir from './src/makeAndChangeDir'
+import makeAndChangeDir, { makekdir } from './src/makeAndChangeDir'
 import jsonReplacer from './src/jsonReplacer'
 import writeToFile from './src/writeToFile'
 import readSampleFile from './src/readSampleFile'
@@ -48,6 +48,7 @@ async function go() {
   log('Added README')
 
   if (demo) {
+    await makekdir(`${name}/demo`)
     await writeToFile('demo/index.html', (await readSampleFile('demo.html'))
       .replace(/_NICENAME_/g, captialCase(name)))
     log('Added demo.html')
@@ -82,6 +83,12 @@ const {
   .help()
   .usage(`${thisPkgDescription}
   Usage: yarn create ${thisPkgName.replace('create-', '')} <package-name> [options]`)
+  .option('verbose', {
+    alias: 'v',
+    description: 'Whether to output status of package creation',
+    default: false,
+    type: 'boolean',
+  })
   .option('author', {
     alias: 'a',
     type: 'string',
@@ -103,7 +110,6 @@ const {
     type: 'string',
     description: 'Description for the new package',
     default: '',
-    demandOption: true,
   })
   .option('type', {
     alias: 't',
@@ -111,12 +117,6 @@ const {
     defaultDescription: 'An ES Module without a demo',
     default: 'esm',
     choices: ['esm', 'lit-app'] // TODO add support of CLI
-  })
-  .option('verbose', {
-    alias: 'v',
-    description: 'Whether to output status of package creation',
-    default: false,
-    type: 'boolean',
   })
   .option('scoped', {
     alias: 's',
