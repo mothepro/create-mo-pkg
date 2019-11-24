@@ -1,21 +1,22 @@
 #!/usr/bin/env node
 import { strict } from 'yargs'
-import { version, name, description } from './package.json'
+import { version, name as thisPkgName, description } from './package.json'
 import { runSync } from './src/run.js'
 import go from './src/go'
 
 const {
-  _: [pkgName],
+  _: [name],
   author,
   username,
   type,
-  verbose
+  verbose,
+  scoped,
 } = strict()
   .demandCommand()
   .version(version)
   .help()
   .usage(`${description}
-  Usage: yarn create ${name.replace('create-', '')} <package-name> [options]`)
+  Usage: yarn create ${thisPkgName.replace('create-', '')} <package-name> [options]`)
   .option('author', {
     alias: 'a',
     type: 'string',
@@ -37,11 +38,17 @@ const {
     description: 'The type of package being made',
     defaultDescription: 'An ES Module without a demo',
     default: 'esm',
-    choices: ['esm', 'lit-app']
+    choices: ['esm', 'lit-app'] // TODO add support of CLI
   })
   .option('verbose', {
     alias: 'v',
     description: 'Whether to output status of package creation',
+    default: false,
+    type: 'boolean',
+  })
+  .option('scoped', {
+    alias: 's',
+    description: 'Whether to package is scoped for the given user',
     default: false,
     type: 'boolean',
   })
@@ -76,5 +83,5 @@ switch (type) {
     break
 }
 
-go({ pkgName, author, username, devDependencies, verbose })
+go({ name, author, username, devDependencies, verbose, scoped })
   .catch(console.error)

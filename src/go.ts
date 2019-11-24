@@ -14,24 +14,25 @@ async function step(logMessage: string, ...promises: Promise<unknown>[]) {
     console.log(logMessage)
 }
 
-export default async function ({ pkgName, author, username, devDependencies, verbose }: {
-  pkgName: string
+export default async function ({ name, author, username, devDependencies, verbose, scoped }: {
+  name: string
   author: string
   username: string
   devDependencies: string[]
   verbose: boolean
+  scoped: boolean
 }) {
   verbosity = verbose
-  console.log({ pkgName, author, username, devDependencies, verbose })
 
-  await step(`Made new folder ${pkgName}`,
-    makeAndChangeDir(pkgName))
+  await step(`Made new folder ${name}`,
+    makeAndChangeDir(name))
 
   await step('Generated package.json',
     writeToFile('package.json', jsonReplacer(samplePackageJson, {
-      name: pkgName,
+      name: scoped ? `@${username}/${name}` : name,
       author,
-      repository: `https://github.com${username}/${pkgName}`,
+      repository: `https://github.com/${username}/${name}`,
+      publishConfig: scoped ? { "access": "public" } : undefined,
     })))
 
   await step('Added Apache2 License',
@@ -44,20 +45,20 @@ export default async function ({ pkgName, author, username, devDependencies, ver
 
   await step('Added README',
     writeToFile('README.md', (await readSampleFile('README.md'))
-      .replace(/_NAME_/g, pkgName)
-      .replace(/_DESC_/g, pkgName)
-      .replace(/_NICENAME_/g, capitalCase(pkgName))))
+      .replace(/_NAME_/g, name)
+      .replace(/_DESC_/g, name)
+      .replace(/_NICENAME_/g, capitalCase(name))))
 
   await step('Initialized Git repo',
     run('git', 'init').then(() => // find a better way to do this
-      run('git', 'remote', 'add', 'origin', `https://github.com/${username}/${pkgName}.git`)))
+      run('git', 'remote', 'add', 'origin', `https://github.com/${username}/${name}.git`)))
 
   if (verbose)
     console.log('Adding dev dependencies', ...devDependencies)
   await step('Added starter dev dependencies',
     run('yarn', 'add', '-D', ...devDependencies))
 
-  await step(`Successfully created ${pkgName}`,
+  await step(`Successfully created ${name}`,
     run('git', 'add', '.').then(() => // find a better way to do this
       run('git', 'commit', '-m', '"Init Commit!"')))
 }
