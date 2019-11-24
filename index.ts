@@ -13,7 +13,7 @@ import captialCase from './src/captialCase'
 
 // Because top level await isn't allowed
 async function go() {
-  const log = (...str: string[]) => verbose && console.log(str)
+  const log = (...strs: string[]) => verbose && console.log(...strs)
 
   await makeAndChangeDir(name)
   log('Made new folder', name)
