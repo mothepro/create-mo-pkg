@@ -16,11 +16,41 @@ async function go() {
   await makeAndChangeDir(name)
   log('Made new folder', name)
 
+  if (demo) {
+    scripts = {
+      ...scripts,
+      
+      // import maps
+      'map:dev': 'importly --host node_modules < package.json > dist/demo/import-map.json',
+      'map:prod': 'importly --host unpkg < package.json > dist/demo/import-map.json',
+      
+      // copy HTML before building ES module
+      'prebuild:esm': 'copy demo/index.html dist',
+
+      // Building demo for prod and local
+      'build:esm:dev':  'npm run map:dev && npm run build:esm',
+      'build:esm:prod': 'npm run map:prod && npm run build:esm',
+
+      // Deploy demo in branch
+      'predeploy': 'npm run build:prod',
+      'deploy': 'gh-pages -d dist/demo',
+      'prerelease': 'npm run build:npm && npm run deploy',
+    }
+
+    devDependencies.push('importly', 'gh-pages')
+
+    await writeToFile('demo/index.html', (await readSampleFile('demo.html'))
+      .replace(/_NICENAME_/g, captialCase(name)))
+    log('Added demo')
+  }
+
   await writeToFile('package.json', jsonReplacer(samplePackageJson, {
     name: scoped ? `@${username}/${name}` : name,
     author,
+    description,
     repository: `https://github.com/${username}/${name}`,
     publishConfig: scoped ? { "access": "public" } : undefined,
+    scripts,
   }))
   log('Generated package.json')
 
@@ -34,7 +64,7 @@ async function go() {
 
   await writeToFile('README.md', (await readSampleFile('README.md'))
     .replace(/_NAME_/g, name)
-    .replace(/_DESC_/g, name)
+    .replace(/_DESC_/g, description)
     .replace(/_NICENAME_/g, captialCase(name)))
   log('Added README')
 
@@ -60,6 +90,7 @@ const {
   verbose,
   description,
   scoped,
+  demo,
 } = strict()
   .demandCommand()
   .version(version)
@@ -108,10 +139,30 @@ const {
     default: false,
     type: 'boolean',
   })
+  .option('demo', {
+    alias: 'd',
+    description: 'Whether to include a demo with the package',
+    default: false,
+    type: 'boolean',
+  })
     .argv
 
+// The NPM scripts that can be used
+let scripts: object = {
+  "build:npm": "tsc",
+  "build:esm": "tsc -p tsconfig.esm.json",
+  "build": "npm run build:npm && npm run build:esm",
+
+  "pretest": "npm run build:npm",
+  "test": "mocha -r should -r should-sinon dist/test/*.js",
+
+  "prerelease": "npm run build",
+  "release": "np",
+}
+
 // Add the dependencies based on the type of package being created
-const devDependencies = [
+const dependencies = [],
+  devDependencies = [
   'typescript',
   'np', // for publishing
 ]
@@ -131,7 +182,7 @@ switch (type) {
     break
 
   case 'lit-app':
-    devDependencies.push(
+    dependencies.push(
       // 'es-module-shims', // not needed since we just hardcode the unpkg usage in the HMTL
       'importly', // create import maps
       'lit-element',

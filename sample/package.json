@@ -1,13 +1,15 @@
 {
-  "name": "",
+  "name": null,
+  "description": null,
+  "author": null,
   "version": "0.0.0",
-  "description": "Global command for creating packages the way Mo likes",
-  "main": "dist/index.js",
-  "repository": "https://github.com/mothepro/mo-pkg",
   "license": "Apache-2.0",
-  "author": "Maurice Prosper",
-  "scripts": {
-    "build": "tsc",
-    "prepublishOnly": "npm run build"
-  }
+  "main": "dist/npm/index.js",
+  "sideEffects": false,
+  "type": "module",
+  "module": "dist/esm/index.js",
+  "files": ["dist"],
+  "repository": null,
+  "publishConfig": null,
+  "scripts": null,
 }
