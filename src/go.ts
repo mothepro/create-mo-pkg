@@ -6,46 +6,58 @@ import run from './run'
 import samplePackageJson from '../sample/package.json'
 import writeToFile from './writeToFile'
 
-interface PackageDetails {
+let verbosity = false
+
+async function step(logMessage: string, ...promises: Promise<unknown>[]) {
+  await Promise.all(promises)
+  if (verbosity)
+    console.log(logMessage)
+}
+
+export default async function ({ pkgName, author, username, devDependencies, verbose }: {
   pkgName: string
   author: string
   username: string
   devDependencies: string[]
-}
+  verbose: boolean
+}) {
+  verbosity = verbose
+  console.log({ pkgName, author, username, devDependencies, verbose })
 
-export default async function({ pkgName, author, username, devDependencies }: PackageDetails) {
-  await makeAndChangeDir(pkgName)
-  console.log('Made new folder', pkgName)
+  await step(`Made new folder ${pkgName}`,
+    makeAndChangeDir(pkgName))
 
-  await writeToFile('package.json', jsonReplacer(samplePackageJson, {
-    name: pkgName,
-    author,
-    repository: `https://github.com${username}/${pkgName}`,
-  }))
-  console.log('Generated package.json')
+  await step('Generated package.json',
+    writeToFile('package.json', jsonReplacer(samplePackageJson, {
+      name: pkgName,
+      author,
+      repository: `https://github.com${username}/${pkgName}`,
+    })))
 
-  writeToFile('LICENSE', (await readSampleFile('LICENSE'))
-    .replace(/\[yyyy\]/g, new Date().getFullYear().toString())
-    .replace(/\[name of copyright owner\]/g, author))
-  console.log('Added Apache2 License')
+  await step('Added Apache2 License',
+    writeToFile('LICENSE', (await readSampleFile('LICENSE'))
+      .replace(/\[yyyy\]/g, new Date().getFullYear().toString())
+      .replace(/\[name of copyright owner\]/g, author)))
 
-  await writeToFile('.gitignore', await readSampleFile('.gitignore'))
-  console.log('Added .gitignore')
+  await step('Added .gitignore',
+    writeToFile('.gitignore', await readSampleFile('.gitignore')))
 
-  await writeToFile('README.md', (await readSampleFile('README.md'))
-    .replace(/_NAME_/g, pkgName)
-    .replace(/_DESC_/g, pkgName)
-    .replace(/_NICENAME_/g, capitalCase(pkgName)))
-  console.log('Added README')
+  await step('Added README',
+    writeToFile('README.md', (await readSampleFile('README.md'))
+      .replace(/_NAME_/g, pkgName)
+      .replace(/_DESC_/g, pkgName)
+      .replace(/_NICENAME_/g, capitalCase(pkgName))))
 
-  await run('git', 'init')
-  await run('git', 'remote', 'add', 'origin', `https://github.com${username}/${pkgName}.git`)
-  console.log('Initialized Git repo')
+  await step('Initialized Git repo',
+    run('git', 'init').then(() => // find a better way to do this
+      run('git', 'remote', 'add', 'origin', `https://github.com/${username}/${pkgName}.git`)))
 
-  await run('yarn', 'add', '-D', ...devDependencies)
-  console.log('Added starter dev dependencies', ...devDependencies)
+  if (verbose)
+    console.log('Adding dev dependencies', ...devDependencies)
+  await step('Added starter dev dependencies',
+    run('yarn', 'add', '-D', ...devDependencies))
 
-  await run('git', 'add', '.')
-  await run('git', 'commit', '-m', '"Init Commit!"')
-  console.log('Successfully created', pkgName)
+  await step(`Successfully created ${pkgName}`,
+    run('git', 'add', '.').then(() => // find a better way to do this
+      run('git', 'commit', '-m', '"Init Commit!"')))
 }

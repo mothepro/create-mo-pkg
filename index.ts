@@ -9,13 +9,13 @@ const {
   author,
   username,
   type,
+  verbose
 } = strict()
   .demandCommand()
   .version(version)
   .help()
   .usage(`${description}
-  > ${name} <package-name> [options]
-  > yarn create ${name.replace('create-', '')} <package-name> [options]`)
+  Usage: yarn create ${name.replace('create-', '')} <package-name> [options]`)
   .option('author', {
     alias: 'a',
     type: 'string',
@@ -38,6 +38,12 @@ const {
     defaultDescription: 'An ES Module without a demo',
     default: 'esm',
     choices: ['esm', 'lit-app']
+  })
+  .option('verbose', {
+    alias: 'v',
+    description: 'Whether to output status of package creation',
+    default: false,
+    type: 'boolean',
   })
     .argv
 
@@ -64,10 +70,11 @@ switch (type) {
   case 'lit-app':
     devDependencies.push(
       // 'es-module-shims', // not needed since we just hardcode the unpkg usage in the HMTL
-      'importly' // create import maps
+      'importly', // create import maps
+      'lit-element',
     )
     break
 }
 
-go({ pkgName, author, username, devDependencies, })
+go({ pkgName, author, username, devDependencies, verbose })
   .catch(console.error)
