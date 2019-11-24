@@ -1,9 +1,57 @@
 #!/usr/bin/env node
 import { strict } from 'yargs'
 import { version, name as thisPkgName, description } from './package.json'
-import { runSync } from './src/run.js'
-import go from './src/go'
+import samplePackageJson from './sample/package.json'
+import run, { runSync } from './src/run'
+import makeAndChangeDir from './src/makeAndChangeDir'
+import jsonReplacer from './src/jsonReplacer'
+import writeToFile from './src/writeToFile'
+import readSampleFile from './src/readSampleFile'
+import captialCase from './src/captialCase'
 
+// Because top level await isn't allowed
+async function go() {
+  const log = (...str: string[]) => verbose && console.log(str)
+
+  await makeAndChangeDir(name)
+  log('Made new folder', name)
+
+  await writeToFile('package.json', jsonReplacer(samplePackageJson, {
+    name: scoped ? `@${username}/${name}` : name,
+    author,
+    repository: `https://github.com/${username}/${name}`,
+    publishConfig: scoped ? { "access": "public" } : undefined,
+  }))
+  log('Generated package.json')
+
+  await writeToFile('LICENSE', (await readSampleFile('LICENSE'))
+    .replace(/\[yyyy\]/g, new Date().getFullYear().toString())
+    .replace(/\[name of copyright owner\]/g, author))
+  log('Added Apache2 License')
+
+  await writeToFile('.gitignore', await readSampleFile('.gitignore'))
+  log('Added .gitignore')
+
+  await writeToFile('README.md', (await readSampleFile('README.md'))
+    .replace(/_NAME_/g, name)
+    .replace(/_DESC_/g, name)
+    .replace(/_NICENAME_/g, captialCase(name)))
+  log('Added README')
+
+  await run('git', 'init')
+  await run('git', 'remote', 'add', 'origin', `https://github.com/${username}/${name}.git`)
+  log('Initialized Git repo')
+
+  log('Adding dev dependencies', ...devDependencies)
+  await run('yarn', 'add', '-D', ...devDependencies)
+  log('Added starter dev dependencies')
+
+  await run('git', 'add', '.')
+  await run('git', 'commit', '-m', '"Init Commit!"')
+  log(`Successfully created ${name}`)
+}
+
+// Get args
 const {
   _: [name],
   author,
@@ -83,5 +131,5 @@ switch (type) {
     break
 }
 
-go({ name, author, username, devDependencies, verbose, scoped })
-  .catch(console.error)
+// Run and log errors
+go().catch(console.error)
