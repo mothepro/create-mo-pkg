@@ -34,8 +34,6 @@ async function go() {
   log('Added Apache2 License')
 
   await writeToFile('tsconfig.json', JSON.stringify(sampleTsConfigJson, null, 2))
-  if (demo)
-    await writeToFile('tsconfig.esm.json', JSON.stringify(sampleTsEsmConfigJson, null, 2))
   log('Added tsconfig.json')
 
   await writeToFile('.gitignore', await readSampleFile('.gitignore'))
@@ -47,20 +45,22 @@ async function go() {
     .replace(/_NICENAME_/g, captialCase(name)))
   log('Added README')
 
-  if (demo) {
+  if (type == 'lit-app' || type == 'esm-demo') {
+    await writeToFile('tsconfig.esm.json', JSON.stringify(sampleTsEsmConfigJson, null, 2))
     await makekdir(`${name}/demo`)
     await writeToFile('demo/index.html', (await readSampleFile('demo.html'))
       .replace(/_NICENAME_/g, captialCase(name)))
-    log('Added demo.html')
+    log('Added demo')
   }
 
   await run('git', 'init')
   await run('git', 'remote', 'add', 'origin', `https://github.com/${username}/${name}.git`)
   log('Initialized Git repo')
 
-  log('Adding dev dependencies', ...devDependencies)
+  log('Adding dependencies', ...devDependencies, ...dependencies)
   await run('yarn', 'add', '-D', ...devDependencies)
-  log('Added starter dev dependencies')
+  await run('yarn', 'add', ...dependencies)
+  log('Added dependencies')
 
   await run('git', 'add', '.')
   await run('git', 'commit', '-m', '"Init Commit!"')
@@ -76,7 +76,6 @@ const {
   verbose,
   description,
   scoped,
-  demo,
 } = strict()
   .demandCommand()
   .version(version)
@@ -116,7 +115,7 @@ const {
     description: 'The type of package being made',
     defaultDescription: 'An ES Module without a demo',
     default: 'esm',
-    choices: ['esm', 'lit-app'] // TODO add support of CLI
+    choices: ['esm', 'esm-demo', 'lit-app'] // TODO add support for CLI
   })
   .option('scoped', {
     alias: 's',
@@ -124,20 +123,14 @@ const {
     default: false,
     type: 'boolean',
   })
-  .option('demo', {
-    alias: 'd',
-    description: 'Whether to include a demo with the package',
-    default: false,
-    type: 'boolean',
-  })
     .argv
 
-// The NPM scripts that can be used
+// The NPM scripts and dependencies that can be used based on the type of package being created
 let scripts: object = {
   // Build JS files
   'build:npm': 'tsc',
   'build:esm': 'tsc -p tsconfig.esm.json',
-  'build':     'npm run build:npm && npm run build:esm',
+  'build': 'npm run build:npm && npm run build:esm',
 
   'pretest': 'npm run build:npm',
   'test': 'mocha -r should -r should-sinon dist/test/*.js',
@@ -145,37 +138,12 @@ let scripts: object = {
   'prerelease': 'npm run build',
   'release': 'np',
 }
-
-if (demo)
-  scripts = {
-    ...scripts,
-
-    // import maps
-    'map:dev': 'importly --host node_modules < package.json > dist/demo/import-map.json',
-    'map:prod': 'importly --host unpkg < package.json > dist/demo/import-map.json',
-
-    // copy HTML before building ES module
-    'prebuild:esm': 'copy demo/index.html dist',
-
-    // Building demo for prod and local
-    'build:esm:dev': 'npm run map:dev && npm run build:esm',
-    'build:esm:prod': 'npm run map:prod && npm run build:esm',
-
-    // Deploy demo in branch
-    'predeploy': 'npm run build:prod',
-    'deploy': 'gh-pages -d dist/demo',
-    'prerelease': 'npm run build:npm && npm run deploy',
-  }
-
-// Add the dependencies based on the type of package being created
-const dependencies = [],
+const
+  dependencies: string[] = [],
   devDependencies = [
     'typescript',
     'np', // for publishing
   ]
-
-if (demo)
-  devDependencies.push('importly', 'gh-pages')
 
 switch (type) {
   case 'esm':
@@ -196,6 +164,33 @@ switch (type) {
       // 'es-module-shims', // not needed since we just hardcode the unpkg usage in the HMTL
       'importly', // create import maps
       'lit-element',
+    )
+    // fallthru
+
+  case 'esm-demo': // Has demo or is an app
+    scripts = {
+      ...scripts,
+
+      // import maps
+      'map:dev':  'importly --host node_modules < package.json > dist/demo/import-map.json',
+      'map:prod': 'importly --host unpkg < package.json > dist/demo/import-map.json',
+
+      // copy HTML before building ES module
+      'prebuild:esm': 'copy demo/index.html dist',
+
+      // Building demo for prod and local
+      'build:esm:dev':  'npm run map:dev && npm run build:esm',
+      'build:esm:prod': 'npm run map:prod && npm run build:esm',
+
+      // Deploy demo in branch, always when releasing a new version
+      'predeploy': 'npm run build:prod',
+      'deploy': 'gh-pages -d dist/demo',
+      'prerelease': 'npm run build:npm && npm run deploy',
+    }
+
+    devDependencies.push(
+      'importly', // import map generation
+      'gh-pages', // push project on github pages
     )
     break
 }
