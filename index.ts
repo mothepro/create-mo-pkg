@@ -2,6 +2,8 @@
 import { strict } from 'yargs'
 import { version, name as thisPkgName, description as thisPkgDescription } from './package.json'
 import samplePackageJson from './sample/package.json'
+import sampleTsConfigJson from './sample/tsconfig.json'
+import sampleTsEsmConfigJson from './sample/tsconfig.esm.json'
 import run, { runSync } from './src/run'
 import makeAndChangeDir from './src/makeAndChangeDir'
 import jsonReplacer from './src/jsonReplacer'
@@ -15,34 +17,6 @@ async function go() {
 
   await makeAndChangeDir(name)
   log('Made new folder', name)
-
-  if (demo) {
-    scripts = {
-      ...scripts,
-      
-      // import maps
-      'map:dev': 'importly --host node_modules < package.json > dist/demo/import-map.json',
-      'map:prod': 'importly --host unpkg < package.json > dist/demo/import-map.json',
-      
-      // copy HTML before building ES module
-      'prebuild:esm': 'copy demo/index.html dist',
-
-      // Building demo for prod and local
-      'build:esm:dev':  'npm run map:dev && npm run build:esm',
-      'build:esm:prod': 'npm run map:prod && npm run build:esm',
-
-      // Deploy demo in branch
-      'predeploy': 'npm run build:prod',
-      'deploy': 'gh-pages -d dist/demo',
-      'prerelease': 'npm run build:npm && npm run deploy',
-    }
-
-    devDependencies.push('importly', 'gh-pages')
-
-    await writeToFile('demo/index.html', (await readSampleFile('demo.html'))
-      .replace(/_NICENAME_/g, captialCase(name)))
-    log('Added demo')
-  }
 
   await writeToFile('package.json', jsonReplacer(samplePackageJson, {
     name: scoped ? `@${username}/${name}` : name,
@@ -59,6 +33,11 @@ async function go() {
     .replace(/\[name of copyright owner\]/g, author))
   log('Added Apache2 License')
 
+  await writeToFile('tsconfig.json', JSON.stringify(sampleTsConfigJson, null, 2))
+  if (demo)
+    await writeToFile('tsconfig.esm.json', JSON.stringify(sampleTsEsmConfigJson, null, 2))
+  log('Added tsconfig.json')
+
   await writeToFile('.gitignore', await readSampleFile('.gitignore'))
   log('Added .gitignore')
 
@@ -67,6 +46,12 @@ async function go() {
     .replace(/_DESC_/g, description)
     .replace(/_NICENAME_/g, captialCase(name)))
   log('Added README')
+
+  if (demo) {
+    await writeToFile('demo/index.html', (await readSampleFile('demo.html'))
+      .replace(/_NICENAME_/g, captialCase(name)))
+    log('Added demo.html')
+  }
 
   await run('git', 'init')
   await run('git', 'remote', 'add', 'origin', `https://github.com/${username}/${name}.git`)
@@ -149,23 +134,48 @@ const {
 
 // The NPM scripts that can be used
 let scripts: object = {
-  "build:npm": "tsc",
-  "build:esm": "tsc -p tsconfig.esm.json",
-  "build": "npm run build:npm && npm run build:esm",
+  // Build JS files
+  'build:npm': 'tsc',
+  'build:esm': 'tsc -p tsconfig.esm.json',
+  'build':     'npm run build:npm && npm run build:esm',
 
-  "pretest": "npm run build:npm",
-  "test": "mocha -r should -r should-sinon dist/test/*.js",
+  'pretest': 'npm run build:npm',
+  'test': 'mocha -r should -r should-sinon dist/test/*.js',
 
-  "prerelease": "npm run build",
-  "release": "np",
+  'prerelease': 'npm run build',
+  'release': 'np',
 }
+
+if (demo)
+  scripts = {
+    ...scripts,
+
+    // import maps
+    'map:dev': 'importly --host node_modules < package.json > dist/demo/import-map.json',
+    'map:prod': 'importly --host unpkg < package.json > dist/demo/import-map.json',
+
+    // copy HTML before building ES module
+    'prebuild:esm': 'copy demo/index.html dist',
+
+    // Building demo for prod and local
+    'build:esm:dev': 'npm run map:dev && npm run build:esm',
+    'build:esm:prod': 'npm run map:prod && npm run build:esm',
+
+    // Deploy demo in branch
+    'predeploy': 'npm run build:prod',
+    'deploy': 'gh-pages -d dist/demo',
+    'prerelease': 'npm run build:npm && npm run deploy',
+  }
 
 // Add the dependencies based on the type of package being created
 const dependencies = [],
   devDependencies = [
-  'typescript',
-  'np', // for publishing
-]
+    'typescript',
+    'np', // for publishing
+  ]
+
+if (demo)
+  devDependencies.push('importly', 'gh-pages')
 
 switch (type) {
   case 'esm':
