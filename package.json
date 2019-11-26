@@ -14,9 +14,11 @@
   },
   "scripts": {
     "build": "tsc",
+    "postbuild": "copyfiles sample/* dist/npm/",
     "prepublishOnly": "npm run build"
   },
   "dependencies": {
+    "copyfiles": "^2.1.1",
     "yargs": "^15.0.2"
   }
 }
