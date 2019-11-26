@@ -174,7 +174,9 @@ switch (type) {
   log('Added Apache2 License')
 
   await writeToFile('tsconfig.json', jsonReplacer(sampleTsConfigJson, {
-    lib: ['es2019', type == 'lit-app' || type == 'esm-demo' ? 'dom' : undefined],
+    lib: type == 'lit-app' || type == 'esm-demo'
+      ? ['es2019', 'dom']
+      : ['es2019'],
   }))
   log('Added tsconfig.json')
 
