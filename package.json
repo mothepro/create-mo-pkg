@@ -17,7 +17,7 @@
   },
   "scripts": {
     "build": "tsc",
-    "postbuild": "copyfiles sample/* dist/npm/",
+    "postbuild": "copyfiles -a sample/* dist/npm/",
     "prepublishOnly": "npm run build"
   },
   "dependencies": {
