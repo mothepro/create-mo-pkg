@@ -5,7 +5,8 @@ import { join } from 'path'
 /** Read a file in the sample folder. */
 export default async (filename: string) =>
   promisify(readFile)(
-    join('sample', filename),
+    // The sample directory (relative to THIS file).
+    join(__dirname, '..', 'sample', filename),
     { encoding: 'utf-8' }
   )
 

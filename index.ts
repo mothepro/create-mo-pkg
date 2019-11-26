@@ -163,6 +163,7 @@ switch (type) {
     description,
     repository: `https://github.com/${username}/${name}`,
     publishConfig: scoped ? { "access": "public" } : undefined,
+    bin: type == 'cli' ? 'dist/npm/index.js' : undefined,
     scripts,
   }))
   log('Generated package.json')
@@ -174,7 +175,6 @@ switch (type) {
 
   await writeToFile('tsconfig.json', jsonReplacer(sampleTsConfigJson, {
     lib: ['es2019', type == 'lit-app' || type == 'esm-demo' ? 'dom' : undefined],
-    bin: type == 'cli' ? 'dist/npm/index.js' : undefined,
   }))
   log('Added tsconfig.json')
 
