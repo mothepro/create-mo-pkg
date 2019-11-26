@@ -1,9 +1,9 @@
 #!/usr/bin/env node
 import { strict } from 'yargs'
 import { version, name as thisPkgName, description as thisPkgDescription } from './package.json'
-import samplePackageJson from './sample/package.json'
-import sampleTsConfigJson from './sample/tsconfig.json'
-import sampleTsEsmConfigJson from './sample/tsconfig.esm.json'
+import samplePackageJson from './sample/_package.json'
+import sampleTsConfigJson from './sample/_tsconfig.json'
+import sampleTsEsmConfigJson from './sample/_tsconfig.esm.json'
 import run, { runSync } from './src/run'
 import makeAndChangeDir, { makekdir } from './src/makeAndChangeDir'
 import jsonReplacer from './src/jsonReplacer'
