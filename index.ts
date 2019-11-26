@@ -156,7 +156,9 @@ switch (type) {
     .replace(/\[name of copyright owner\]/g, author))
   log('Added Apache2 License')
 
-  await writeToFile('tsconfig.json', JSON.stringify(sampleTsConfigJson, null, 2))
+  await writeToFile('tsconfig.json', jsonReplacer(sampleTsConfigJson, {
+    lib: ['es2019', type == 'lit-app' || type == 'esm-demo' ? 'dom' : undefined],
+  }))
   log('Added tsconfig.json')
 
   await writeToFile('.gitignore', await readSampleFile('.gitignore'))
