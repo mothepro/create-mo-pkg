@@ -1,6 +1,6 @@
 {
   "name": "create-mo-pkg",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "Global command for creating packages the way Mo likes",
   "main": "dist/npm/index.js",
   "bin": "dist/npm/index.js",
