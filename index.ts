@@ -59,7 +59,7 @@ const {
     description: 'The type of package being made',
     defaultDescription: 'An ES Module without a demo',
     default: 'esm',
-    choices: ['esm', 'esm-demo', 'lit-app'] // TODO add support for CLI
+    choices: ['esm', 'esm-demo', 'lit-app', 'cli']
   })
   .option('scoped', {
     alias: 's',
@@ -78,12 +78,9 @@ const log = (...strs: string[]) => verbose && console.log(...strs),
   ]
 
 let scripts: object = {
-  // Build JS files
-  'build:npm': 'tsc',
-  'build:esm': 'tsc -p tsconfig.esm.json',
-  'build': 'npm run build:npm && npm run build:esm',
+  'build': 'tsc',
 
-  'pretest': 'npm run build:npm',
+  'pretest': 'npm run build',
   'test': 'mocha -r should -r should-sinon dist/test/*.js',
 
   'prerelease': 'npm run build',
@@ -91,6 +88,14 @@ let scripts: object = {
 }
 
 switch (type) {
+  case 'cli':
+    devDependencies.push(
+      '@types/node',
+      '@types/yargs',
+    )
+    dependencies.push('yargs')
+    break
+  
   case 'lit-app':
     dependencies.push('lit-element')
     // fallthru
@@ -124,6 +129,17 @@ switch (type) {
     // fallthru
 
   case 'esm':
+    scripts = {
+      ...scripts,
+
+      // Build JS files
+      'build:npm': 'tsc',
+      'build:esm': 'tsc -p tsconfig.esm.json',
+      'build': 'npm run build:npm && npm run build:esm',
+
+      'pretest': 'npm run build:npm',
+    }
+
     devDependencies.push(
       '@types/mocha',
       'mocha',
@@ -158,6 +174,7 @@ switch (type) {
 
   await writeToFile('tsconfig.json', jsonReplacer(sampleTsConfigJson, {
     lib: ['es2019', type == 'lit-app' || type == 'esm-demo' ? 'dom' : undefined],
+    bin: type == 'cli' ? 'dist/npm/index.js' : undefined,
   }))
   log('Added tsconfig.json')
 

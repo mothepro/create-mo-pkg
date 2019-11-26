@@ -5,6 +5,7 @@
   "version": "0.0.0",
   "license": "Apache-2.0",
   "main": "dist/npm/index.js",
+  "bin": null,
   "sideEffects": false,
   "type": "module",
   "module": "dist/esm/index.js",
