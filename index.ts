@@ -78,17 +78,23 @@ const log = (...strs: string[]) => verbose && console.log(...strs),
   ]
 
 let scripts: object = {
-  'build': 'tsc',
+  build: 'tsc',
 
-  'pretest': 'npm run build',
-  'test': 'mocha -r should -r should-sinon dist/test/*.js',
+  pretest: 'npm run build',
+  test: 'mocha -r should -r should-sinon dist/test/*.js',
 
-  'prerelease': 'npm run build',
-  'release': 'np',
+  prerelease: 'npm run build',
+  release: 'np',
 }
 
 switch (type) {
   case 'cli':
+    scripts = {
+      ...scripts,
+
+      prestart: 'npm run build',
+      start: 'node ./dist/npm/index.js',
+    }
     devDependencies.push(
       '@types/node',
       '@types/yargs',
@@ -116,9 +122,9 @@ switch (type) {
       'build:esm:prod': 'npm run map:prod && npm run build:esm',
 
       // Deploy demo in branch, always when releasing a new version
-      'predeploy': 'npm run build:prod',
-      'deploy': 'gh-pages -d dist/demo',
-      'prerelease': 'npm run build:npm && npm run deploy',
+      predeploy: 'npm run build:prod',
+      deploy: 'gh-pages -d dist/demo',
+      prerelease: 'npm run build:npm && npm run deploy',
     }
 
     devDependencies.push(
@@ -135,9 +141,9 @@ switch (type) {
       // Build JS files
       'build:npm': 'tsc',
       'build:esm': 'tsc -p tsconfig.esm.json',
-      'build': 'npm run build:npm && npm run build:esm',
+      build: 'npm run build:npm && npm run build:esm',
 
-      'pretest': 'npm run build:npm',
+      pretest: 'npm run build:npm',
     }
 
     devDependencies.push(
