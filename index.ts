@@ -79,6 +79,7 @@ const log = (...strs: string[]) => verbose && console.log(...strs),
 
 let scripts: object = {
   'build': 'tsc',
+  'postinstall': 'npm run build',
 
   'pretest': 'npm run build',
   'test': 'mocha -r should -r should-sinon dist/test/*.js',
@@ -95,10 +96,10 @@ switch (type) {
     )
     dependencies.push('yargs')
     break
-  
+
   case 'lit-app':
     dependencies.push('lit-element')
-    // fallthru
+  // fallthru
 
   case 'esm-demo': // Has demo or is an app
     scripts = {
@@ -126,7 +127,7 @@ switch (type) {
       'importly', // import map generation
       'gh-pages', // push project on github pages
     )
-    // fallthru
+  // fallthru
 
   case 'esm':
     scripts = {
