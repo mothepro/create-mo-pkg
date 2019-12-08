@@ -15,5 +15,6 @@
     "experimentalDecorators": true,
 
     "lib": null
-  }
+  },
+  "exclude": ["dist"]
 }

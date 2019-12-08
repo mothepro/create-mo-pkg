@@ -82,7 +82,7 @@ let scripts: object = {
   'postinstall': 'npm run build',
 
   pretest: 'npm run build',
-  test: 'mocha -r should -r should-sinon dist/test/*.js',
+  test: 'mocha -r should -r should-sinon dist/npm/test/*.js',
 
   prerelease: 'npm run build',
   release: 'np',
