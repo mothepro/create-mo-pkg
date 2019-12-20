@@ -6,10 +6,7 @@
   "bin": "dist/npm/index.js",
   "repository": "",
   "author": "Maurice Prosper",
-  "license": "MIT",
-  "files": [
-    "dist"
-  ],
+  "license": "Apache-2.0",
   "devDependencies": {
     "@types/node": "^12.12.9",
     "@types/yargs": "^13.0.3",
