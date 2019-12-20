@@ -8,13 +8,13 @@
   "author": "Maurice Prosper",
   "license": "Apache-2.0",
   "devDependencies": {
-    "@types/node": "^12.12.9",
+    "@types/node": "^12.12.21",
     "@types/yargs": "^13.0.3",
     "typescript": "^3.7.2"
   },
   "scripts": {
     "build": "tsc",
-    "postbuild": "copyfiles -a sample/* dist/npm/",
+    "postbuild": "copyfiles sample/* dist/npm/ && copyfiles -a sample/.gitignore dist/npm/",
     "prepublishOnly": "npm run build"
   },
   "dependencies": {
