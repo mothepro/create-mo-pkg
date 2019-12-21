@@ -141,7 +141,7 @@ export default async function () {
   }))
   log('Added tsconfig.json')
 
-  await writeToFile('.gitignore', await readSampleFile('.gitignore'))
+  await writeToFile('.gitignore', await readSampleFile('gitignore'))
   log('Added .gitignore')
 
   await writeToFile('README.md', (await readSampleFile('README.md'))

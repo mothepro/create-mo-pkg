@@ -14,7 +14,7 @@
   },
   "scripts": {
     "build": "tsc",
-    "postbuild": "copyfiles sample/* dist/npm/ && copyfiles -a sample/.gitignore dist/npm/",
+    "postbuild": "copyfiles sample/* dist/npm/",
     "prepublishOnly": "npm run build"
   },
   "dependencies": {
