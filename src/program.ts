@@ -8,6 +8,7 @@ import captialCase from './captialCase'
 import samplePackageJson from '../sample/_package.json'
 import sampleTsConfigJson from '../sample/_tsconfig.json'
 import sampleTsEsmConfigJson from '../sample/_tsconfig.esm.json'
+import sampleBabelRc from '../sample/babel.json'
 
 // The NPM scripts and dependencies that can be used based on the type of package being created
 const dependencies: string[] = [],
@@ -43,32 +44,41 @@ switch (type) {
     break
 
   case 'lit-app':
+    devDependencies.push(
+      '@open-wc/testing',
+      'replace'
+    )
     dependencies.push('lit-element')
   // fallthru
 
   case 'esm-demo': // Has demo or is an app
     scripts = {
       ...scripts,
+      
+      start: "es-dev-server --file-extensions .ts --babel --node-resolve --watch --app-index demo/index.html --root demo --open",
 
       // import maps
-      'map:dev': 'importly --host node_modules < package.json > dist/demo/import-map.json',
-      'map:prod': 'importly --host unpkg < package.json > dist/demo/import-map.json',
+      // TODO find a cross-platform friendly import map generator
+      "importmap": "importly --host unpkg < package.json > demo/import-map.prod.json",
+      "win:importmap": "type package.json | importly --host unpkg > demo/import-map.prod.json",
 
-      // copy HTML before building ES module
-      'prebuild:esm': 'copy demo/index.html dist',
-
-      // Building demo for prod and local
-      'build:esm:dev': 'npm run map:dev && npm run build:esm',
-      'build:esm:prod': 'npm run map:prod && npm run build:esm',
-
+      // Conversion for Prod/Dev HTML for demo
+      "html:removedev": "replace 'type=\"module\"' 'type=\"module-dev-only\"' demo/index.html",
+      "html:removedev:undo": "replace 'type=\"module-dev-only\"' 'type=\"module\"' demo/index.html",
+      "html:addprod": "replace 'type=\"module-prod-only\"' 'type=\"module\"' demo/index.html",
+      "html:addprod:undo": "replace 'type=\"module\"' 'type=\"module-prod-only\"' demo/index.html",
+      
       // Deploy demo in branch, always when releasing a new version
-      predeploy: 'npm run build:prod',
-      deploy: 'gh-pages -d dist/demo',
+      predeploy: "npm run html:removedev && npm run html:addprod && npm run build:esm",
+      postdeploy: "npm run html:addprod:undo && npm run html:removedev:undo",
+      deploy: 'gh-pages -d dist/demo -v *.ts',
+
       prerelease: 'npm run build:npm && npm run deploy',
     }
 
     devDependencies.push(
       // 'es-module-shims', // not needed since we just hardcode the unpkg usage in the HMTL
+      'es-dev-server', // local demo
       'importly', // import map generation
       'gh-pages', // push project on github pages
     )
@@ -142,6 +152,7 @@ export default async function () {
 
   if (type == 'lit-app' || type == 'esm-demo') {
     await writeToFile('tsconfig.esm.json', JSON.stringify(sampleTsEsmConfigJson, null, 2))
+    await writeToFile('.babelrc', JSON.stringify(sampleBabelRc, null, 2))
     await makekdir(`${name}/demo`)
     await writeToFile('demo/index.html', (await readSampleFile('demo.html'))
       .replace(/_NICENAME_/g, captialCase(name)))
