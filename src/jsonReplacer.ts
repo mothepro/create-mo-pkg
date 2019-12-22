@@ -3,7 +3,7 @@ export default (json: any, map: { [replacementKey: string]: any }) =>
   JSON.stringify(
     json,
     (key: string, value: any) =>
-      typeof map[key] != 'undefined'
+      key in map
         ? map[key]
         : value,
     2)
