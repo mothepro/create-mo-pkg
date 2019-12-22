@@ -17,7 +17,7 @@ const dependencies: string[] = [],
     'np', // for publishing
   ]
 
-let scripts: object = {
+let scripts: { [target: string]: string } = {
   build: 'tsc',
   postinstall: 'npm run build',
 
@@ -54,7 +54,7 @@ switch (type) {
   case 'esm-demo': // Has demo or is an app
     scripts = {
       ...scripts,
-      
+
       start: "es-dev-server --file-extensions .ts --babel --node-resolve --watch --app-index demo/index.html --root demo --open",
 
       // import maps
@@ -67,7 +67,7 @@ switch (type) {
       "html:removedev:undo": "replace 'type=\"module-dev-only\"' 'type=\"module\"' demo/index.html",
       "html:addprod": "replace 'type=\"module-prod-only\"' 'type=\"module\"' demo/index.html",
       "html:addprod:undo": "replace 'type=\"module\"' 'type=\"module-prod-only\"' demo/index.html",
-      
+
       // Deploy demo in branch, always when releasing a new version
       predeploy: "npm run html:removedev && npm run html:addprod && npm run build:esm",
       postdeploy: "npm run html:addprod:undo && npm run html:removedev:undo",
@@ -81,6 +81,7 @@ switch (type) {
       'es-dev-server', // local demo
       'importly', // import map generation
       'gh-pages', // push project on github pages
+      'ttypescript', '@zoltu/typescript-transformer-append-js-extension', // Fix paths after compiling ESM
     )
   // fallthru
 
@@ -109,12 +110,16 @@ switch (type) {
     break
 }
 
+// Must use TTSC to remove extensions
+if (type == 'lit-app' || type == 'esm-demo')
+  scripts['build:esm'] = 'ttsc -p tsconfig.esm.json'
+
 let called = false
 export default async function () {
   if (called)
     return
   called = true
-  
+
   await makeAndChangeDir(name)
   log('Made new folder', name)
 
@@ -139,6 +144,15 @@ export default async function () {
       ? ['es2019', 'dom']
       : ['es2019'],
   }))
+  if (type == 'lit-app' || type == 'esm-demo' || type == 'esm')
+    await writeToFile('tsconfig.esm.json', jsonReplacer(sampleTsEsmConfigJson, {
+      plugins: type == 'lit-app' || type == 'esm-demo'
+        ? [{
+          "transform": "@zoltu/typescript-transformer-append-js-extension/output/index.js",
+          "after": true,
+        }]
+        : undefined
+    }))
   log('Added tsconfig.json')
 
   await writeToFile('.gitignore', await readSampleFile('gitignore'))
@@ -151,7 +165,6 @@ export default async function () {
   log('Added README')
 
   if (type == 'lit-app' || type == 'esm-demo') {
-    await writeToFile('tsconfig.esm.json', JSON.stringify(sampleTsEsmConfigJson, null, 2))
     await writeToFile('.babelrc', JSON.stringify(sampleBabelRc, null, 2))
     await makekdir(`${name}/demo`)
     await writeToFile('demo/index.html', (await readSampleFile('demo.html'))
