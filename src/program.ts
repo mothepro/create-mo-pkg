@@ -123,6 +123,8 @@ export default async function () {
   await makeAndChangeDir(name)
   log('Made new folder', name)
 
+  await writeToFile('index.ts', type == 'cli' ? '' : '// Remember to append ".js" for relative imports')
+
   await writeToFile('package.json', jsonReplacer(samplePackageJson, {
     name: scoped ? `@${username}/${name}` : name,
     author,
