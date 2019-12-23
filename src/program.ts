@@ -8,7 +8,6 @@ import captialCase from './captialCase'
 import samplePackageJson from '../sample/_package.json'
 import sampleTsConfigJson from '../sample/_tsconfig.json'
 import sampleTsEsmConfigJson from '../sample/_tsconfig.esm.json'
-import sampleBabelRc from '../sample/babel.json'
 
 // The NPM scripts and dependencies that can be used based on the type of package being created
 const dependencies: string[] = [],
@@ -45,7 +44,7 @@ switch (type) {
 
   case 'lit-app':
     devDependencies.push(
-      '@open-wc/testing',
+      '@open-wc/testing', // need to remove shouldjs
       'replace'
     )
     dependencies.push('lit-element')
@@ -57,7 +56,7 @@ switch (type) {
 
       // import maps
       // TODO find a cross-platform friendly import map generator
-      'importmap': 'importly --host unpkg < package.json > demo/import-map.prod.json',
+      importmap: 'importly --host unpkg < package.json > demo/import-map.prod.json',
       'win:importmap': 'type package.json | importly --host unpkg > demo/import-map.prod.json',
 
       // Conversion for Prod/Dev HTML for demo
@@ -164,7 +163,6 @@ export default async function () {
   log('Added README')
 
   if (type == 'lit-app' || type == 'esm-demo') {
-    await writeToFile('.babelrc', JSON.stringify(sampleBabelRc, null, 2))
     await makekdir(`${name}/demo`)
     await writeToFile('demo/index.html', (await readSampleFile('demo.html'))
       .replace(/_NICENAME_/g, captialCase(name)))
