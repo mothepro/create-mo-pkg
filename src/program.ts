@@ -55,22 +55,21 @@ switch (type) {
     scripts = {
       ...scripts,
 
-      start: "es-dev-server --file-extensions .ts --babel --node-resolve --watch --app-index demo/index.html --root demo --open",
-
       // import maps
       // TODO find a cross-platform friendly import map generator
-      "importmap": "importly --host unpkg < package.json > demo/import-map.prod.json",
-      "win:importmap": "type package.json | importly --host unpkg > demo/import-map.prod.json",
+      'importmap': 'importly --host unpkg < package.json > demo/import-map.prod.json',
+      'win:importmap': 'type package.json | importly --host unpkg > demo/import-map.prod.json',
 
       // Conversion for Prod/Dev HTML for demo
-      "html:removedev": "replace 'type=\"module\"' 'type=\"module-dev-only\"' demo/index.html",
-      "html:removedev:undo": "replace 'type=\"module-dev-only\"' 'type=\"module\"' demo/index.html",
-      "html:addprod": "replace 'type=\"module-prod-only\"' 'type=\"module\"' demo/index.html",
-      "html:addprod:undo": "replace 'type=\"module\"' 'type=\"module-prod-only\"' demo/index.html",
+      'html:dev:real': 'replace \'dev-only type="dev-only-\' \'dev-only type="\' demo/index.html',
+      'html:dev:shim': 'replace \'dev-only type="\' \'dev- only type = "dev-only-\' demo/index.html',
+    
+      'html:prod:real': 'replace \'prod-only type="prod-only-\' \'prod-only type="\' demo/index.html',
+      'html:prod:shim': 'replace \'prod-only type="\' \'prod-only type="prod-only-\' demo/index.html',
 
       // Deploy demo in branch, always when releasing a new version
-      predeploy: "npm run html:removedev && npm run html:addprod && npm run build:esm",
-      postdeploy: "npm run html:addprod:undo && npm run html:removedev:undo",
+      predeploy: 'npm run html:dev:shim && npm run html:prod:real && npm run build:esm',
+      postdeploy: 'npm run html:dev:real && npm run html:prod:shim',
       deploy: 'gh-pages -d dist/demo -v *.ts',
 
       prerelease: 'npm run build:npm && npm run deploy',
@@ -78,10 +77,8 @@ switch (type) {
 
     devDependencies.push(
       // 'es-module-shims', // not needed since we just hardcode the unpkg usage in the HMTL
-      'es-dev-server', // local demo
       'importly', // import map generation
       'gh-pages', // push project on github pages
-      'ttypescript', '@zoltu/typescript-transformer-append-js-extension', // Fix paths after compiling ESM
     )
   // fallthru
 
@@ -130,7 +127,7 @@ export default async function () {
     author,
     description,
     repository: `https://github.com/${username}/${name}`,
-    publishConfig: scoped ? { "access": "public" } : undefined,
+    publishConfig: scoped ? { access: 'public' } : undefined,
     bin: type == 'cli' ? 'dist/npm/index.js' : undefined,
     scripts,
   }))
@@ -150,8 +147,8 @@ export default async function () {
     await writeToFile('tsconfig.esm.json', jsonReplacer(sampleTsEsmConfigJson, {
       plugins: type == 'lit-app' || type == 'esm-demo'
         ? [{
-          "transform": "@zoltu/typescript-transformer-append-js-extension/output/index.js",
-          "after": true,
+          transform: '@zoltu/typescript-transformer-append-js-extension/output/index.js',
+          after: true,
         }]
         : undefined
     }))
