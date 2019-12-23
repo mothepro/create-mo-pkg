@@ -44,7 +44,7 @@ switch (type) {
 
   case 'lit-app':
     devDependencies.push(
-      '@open-wc/testing', // need to remove shouldjs
+      // '@open-wc/testing', // need to remove shouldjs
       'replace'
     )
     dependencies.push('lit-element')
@@ -56,20 +56,20 @@ switch (type) {
 
       // import maps
       // TODO find a cross-platform friendly import map generator
-      importmap: 'importly --host unpkg < package.json > demo/import-map.prod.json',
-      'win:importmap': 'type package.json | importly --host unpkg > demo/import-map.prod.json',
+      importmap: 'importly --host unpkg < package.json > demo/import-map.json',
+      'win:importmap': 'type package.json | importly --host unpkg > demo/import-map.json',
 
       // Conversion for Prod/Dev HTML for demo
-      'html:dev:real': 'replace \'dev-only type="dev-only-\' \'dev-only type="\' demo/index.html',
-      'html:dev:shim': 'replace \'dev-only type="\' \'dev- only type = "dev-only-\' demo/index.html',
+      'html:dev:real': `replace 'dev-only type="dev-only-' 'dev-only type="' demo/index.html`,
+      'html:dev:shim': `replace 'dev-only type="' 'dev-only type="dev-only-' demo/index.html`,
     
-      'html:prod:real': 'replace \'prod-only type="prod-only-\' \'prod-only type="\' demo/index.html',
-      'html:prod:shim': 'replace \'prod-only type="\' \'prod-only type="prod-only-\' demo/index.html',
+      'html:prod:real': `replace 'prod-only type="prod-only-' 'prod-only type="' demo/index.html`,
+      'html:prod:shim': `replace 'prod-only type="' 'prod-only type="prod-only-' demo/index.html`,
 
       // Deploy demo in branch, always when releasing a new version
       predeploy: 'npm run html:dev:shim && npm run html:prod:real && npm run build:esm',
       postdeploy: 'npm run html:dev:real && npm run html:prod:shim',
-      deploy: 'gh-pages -d dist/demo -v *.ts',
+      deploy: 'gh-pages -d demo -v *.ts',
 
       prerelease: 'npm run build:npm && npm run deploy',
     }
@@ -105,10 +105,6 @@ switch (type) {
     )
     break
 }
-
-// Must use TTSC to remove extensions
-if (type == 'lit-app' || type == 'esm-demo')
-  scripts['build:esm'] = 'ttsc -p tsconfig.esm.json'
 
 let called = false
 export default async function () {
