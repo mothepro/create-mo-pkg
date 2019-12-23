@@ -62,7 +62,7 @@ switch (type) {
       // Conversion for Prod/Dev HTML for demo
       'html:dev:real': `replace 'dev-only type="dev-only-' 'dev-only type="' demo/index.html`,
       'html:dev:shim': `replace 'dev-only type="' 'dev-only type="dev-only-' demo/index.html`,
-    
+
       'html:prod:real': `replace 'prod-only type="prod-only-' 'prod-only type="' demo/index.html`,
       'html:prod:shim': `replace 'prod-only type="' 'prod-only type="prod-only-' demo/index.html`,
 
@@ -153,6 +153,7 @@ export default async function () {
   log('Added .gitignore')
 
   await writeToFile('README.md', (await readSampleFile('README.md'))
+    .replace(/_SCOPE_/g, scoped ? `@${username}/` : '')
     .replace(/_NAME_/g, name)
     .replace(/_DESC_/g, description)
     .replace(/_NICENAME_/g, captialCase(name)))
@@ -161,6 +162,9 @@ export default async function () {
   if (type == 'lit-app' || type == 'esm-demo') {
     await makekdir(`${name}/demo`)
     await writeToFile('demo/index.html', (await readSampleFile('demo.html'))
+      .replace(/_SCOPE_/g, scoped ? `@${username}/` : '')
+      .replace(/_NAME_/g, name)
+      .replace(/_DESC_/g, description)
       .replace(/_NICENAME_/g, captialCase(name)))
     log('Added demo')
   }
