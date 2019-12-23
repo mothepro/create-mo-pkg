@@ -40,7 +40,7 @@ const {
     demandOption: true,
   })
   .option('description', {
-    alias: 'desc',
+    alias: ['d', 'desc'],
     type: 'string',
     description: 'Description for the new package',
     default: '',
