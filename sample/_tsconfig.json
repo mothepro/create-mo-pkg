@@ -14,8 +14,10 @@
     "experimentalDecorators": true,
     "newLine": "lf",
     "allowSyntheticDefaultImports": true,
-
+    "inlineSources": true,
     "lib": null
   },
-  "exclude": ["dist"]
+  "exclude": [
+    "dist"
+  ]
 }
