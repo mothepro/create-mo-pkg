@@ -8,9 +8,9 @@
     "composite": false,
     "outDir": "dist/npm",
     "strict": true,
-    "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
     "resolveJsonModule": true,
+    "allowSyntheticDefaultImports": true,
     "newLine": "lf"
   }
 }
