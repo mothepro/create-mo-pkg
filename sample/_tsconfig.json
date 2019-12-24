@@ -17,6 +17,5 @@
 
     "lib": null
   },
-  "include": ["src", "index"],
   "exclude": ["dist"]
 }

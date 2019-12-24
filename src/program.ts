@@ -66,7 +66,7 @@ switch (type) {
       'html:prod:shim': `replace 'prod-only type="' 'prod-only type="prod-only-' demo/index.html`,
 
       // Deploy demo in branch, always when releasing a new version
-      predeploy: 'npm run html:dev:shim && npm run html:prod:real && npm run build:esm',
+      predeploy: 'npm run build:esm && npm run html:dev:shim && npm run html:prod:real',
       postdeploy: 'npm run html:dev:real && npm run html:prod:shim',
       deploy: 'gh-pages -d demo -v *.ts',
 
