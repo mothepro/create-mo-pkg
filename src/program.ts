@@ -138,14 +138,7 @@ export default async function () {
       : ['es2019'],
   }))
   if (type == 'lit-app' || type == 'esm-demo' || type == 'esm')
-    await writeToFile('tsconfig.esm.json', jsonReplacer(sampleTsEsmConfigJson, {
-      plugins: type == 'lit-app' || type == 'esm-demo'
-        ? [{
-          transform: '@zoltu/typescript-transformer-append-js-extension/output/index.js',
-          after: true,
-        }]
-        : undefined
-    }))
+    await writeToFile('tsconfig.esm.json', JSON.stringify(sampleTsEsmConfigJson, null, 2))
   log('Added tsconfig.json')
 
   await writeToFile('.gitignore', await readSampleFile('gitignore'))
