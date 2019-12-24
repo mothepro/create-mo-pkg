@@ -18,7 +18,6 @@ const dependencies: string[] = [],
 
 let scripts: { [target: string]: string } = {
   build: 'tsc',
-  postinstall: 'npm run build',
 
   pretest: 'npm run build',
   test: 'mocha -r should -r should-sinon dist/npm/test/*.js',
