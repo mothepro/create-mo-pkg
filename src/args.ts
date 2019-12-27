@@ -10,6 +10,7 @@ const {
   verbose,
   description,
   scoped,
+  tests,
 } = strict()
   .demandCommand()
   .version(version)
@@ -58,10 +59,15 @@ const {
     default: false,
     type: 'boolean',
   })
+  .option('tests', {
+    description: 'Whether include tests (Should always be done)',
+    default: true,
+    type: 'boolean',
+  })
     .argv
 
 
-export { name, author, username, type, description, scoped }
+export { name, author, username, type, description, scoped, tests }
 export const log = verbose
   ? (...strs: string[]) => verbose && console.log(...strs)
   : () => { }

@@ -1,4 +1,4 @@
-import { name, author, username, type, description, scoped, log } from './args'
+import { name, author, username, type, description, scoped, log, tests } from './args'
 import run from './run'
 import makeAndChangeDir, { makekdir } from './makeAndChangeDir'
 import jsonReplacer from './jsonReplacer'
@@ -104,6 +104,12 @@ switch (type) {
       'sinon',
     )
     break
+}
+
+if (!tests) {
+  delete scripts.pretest
+  delete scripts.posttest
+  scripts.test = 'echo "No tests... yet."'
 }
 
 let called = false
