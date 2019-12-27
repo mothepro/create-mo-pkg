@@ -68,9 +68,10 @@ switch (type) {
       // Deploy demo in branch, always when releasing a new version
       predeploy: 'npm run build:esm && npm run html:dev:shim && npm run html:prod:real',
       postdeploy: 'npm run html:dev:real && npm run html:prod:shim',
-      deploy: 'gh-pages -d demo -v *.ts',
+      deploy: 'gh-pages -d demo',
 
-      prerelease: 'npm run build:npm && npm run deploy',
+      prerelease: 'npm run build',
+      postrelease: 'npm run deploy', // Causes a duplicate build:esm :(
     }
 
     devDependencies.push(
