@@ -162,8 +162,10 @@ export default async function () {
   log('Initialized Git repo')
 
   log('Adding dependencies', ...devDependencies, ...dependencies)
-  await run('yarn', 'add', '-D', ...devDependencies)
-  await run('yarn', 'add', ...dependencies)
+  if (devDependencies.length)
+    await run('yarn', 'add', '-D', ...devDependencies)
+  if (dependencies.length)
+    await run('yarn', 'add', ...dependencies)
   log('Added dependencies')
 
   await run('git', 'add', '.')
