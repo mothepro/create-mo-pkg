@@ -1,10 +1,9 @@
-import { name, author, username, type, description, scoped, log, tests } from './args'
+import { name, author, username, type, description, scoped, log, tests, templates } from './args'
 import run from './run'
 import makeAndChangeDir, { makekdir } from './makeAndChangeDir'
 import jsonReplacer from './jsonReplacer'
 import writeToFile from './writeToFile'
 import readSampleFile from './readSampleFile'
-import captialCase from './captialCase'
 import samplePackageJson from '../sample/_package.json'
 import sampleTsConfigJson from '../sample/_tsconfig.json'
 import sampleTsEsmConfigJson from '../sample/_tsconfig.esm.json'
@@ -134,9 +133,7 @@ export default async function () {
   }))
   log('Generated package.json')
 
-  await writeToFile('LICENSE', (await readSampleFile('LICENSE'))
-    .replace(/\[yyyy\]/g, new Date().getFullYear().toString())
-    .replace(/\[name of copyright owner\]/g, author))
+  await writeToFile('LICENSE', templates(await readSampleFile('LICENSE')))
   log('Added Apache2 License')
 
   await writeToFile('tsconfig.json', jsonReplacer(sampleTsConfigJson, {
@@ -151,20 +148,12 @@ export default async function () {
   await writeToFile('.gitignore', await readSampleFile('gitignore'))
   log('Added .gitignore')
 
-  await writeToFile('README.md', (await readSampleFile('README.md'))
-    .replace(/_SCOPE_/g, scoped ? `@${username}/` : '')
-    .replace(/_NAME_/g, name)
-    .replace(/_DESC_/g, description)
-    .replace(/_NICENAME_/g, captialCase(name)))
+  await writeToFile('README.md', templates(await readSampleFile('README.md')))
   log('Added README')
 
   if (type == 'lit-app' || type == 'esm-demo') {
     await makekdir(`${name}/demo`)
-    await writeToFile('demo/index.html', (await readSampleFile('demo.html'))
-      .replace(/_SCOPE_/g, scoped ? `@${username}/` : '')
-      .replace(/_NAME_/g, name)
-      .replace(/_DESC_/g, description)
-      .replace(/_NICENAME_/g, captialCase(name)))
+    await writeToFile('demo/index.html', templates(await readSampleFile('demo.html')))
     log('Added demo')
   }
 

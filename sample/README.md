@@ -4,7 +4,7 @@
 
 ## Install
 
-`yarn add _NAME_`
+`yarn add _SCOPE__NAME_`
 
 ## How to Use
 
