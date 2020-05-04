@@ -77,6 +77,7 @@ switch (type) {
       // 'es-module-shims', // not needed since we just hardcode the unpkg usage in the HMTL
       'importly', // import map generation
       'gh-pages', // push project on github pages
+      'replace', // build demo HTML
     )
   // fallthru
 
