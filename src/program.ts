@@ -58,11 +58,11 @@ switch (type) {
       'win:importmap': 'type package.json | importly --host unpkg > demo/import-map.json',
 
       // Conversion for Prod/Dev HTML for demo
-      'html:dev:real': `replace 'dev-only type="dev-only-' 'dev-only type="' demo/index.html`,
-      'html:dev:shim': `replace 'dev-only type="' 'dev-only type="dev-only-' demo/index.html`,
+      'html:dev:real': 'replace "dev-only type=dev-only-" "dev-only type=" demo/index.html',
+      'html:dev:shim': 'replace "dev-only type=" "dev-only type=dev-only-" demo/index.html',
 
-      'html:prod:real': `replace 'prod-only type="prod-only-' 'prod-only type="' demo/index.html`,
-      'html:prod:shim': `replace 'prod-only type="' 'prod-only type="prod-only-' demo/index.html`,
+      'html:prod:real': 'replace "prod-only type=prod-only-" "prod-only type=" demo/index.html',
+      'html:prod:shim': 'replace "prod-only type=" "prod-only type=prod-only-" demo/index.html',
 
       // Deploy demo in branch, always when releasing a new version
       predeploy: 'npm run build:esm && npm run html:dev:shim && npm run html:prod:real',
