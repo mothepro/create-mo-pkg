@@ -9,7 +9,7 @@ const {
   username,
   type,
   verbose,
-  description,
+  description: unformattedDesc,
   scoped,
   tests,
 } = strict()
@@ -67,6 +67,8 @@ const {
   })
     .argv
 
+// Convert '.' to ' ' since windows doesn't allow them in arguments.
+const description = unformattedDesc.replace(/\./g, ' ').trim()
 
 export { name, author, username, type, description, scoped, tests }
 
