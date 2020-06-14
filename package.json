@@ -3,7 +3,7 @@
   "version": "0.0.16",
   "description": "Global command for creating packages the way Mo likes",
   "main": "dist/npm/index.js",
-  "bin": "dist/npm/index.js",
+  "bin": "dist/npm/bin/index.js",
   "repository": "",
   "author": "Maurice Prosper",
   "license": "Apache-2.0",

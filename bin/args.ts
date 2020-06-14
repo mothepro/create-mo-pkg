@@ -1,7 +1,6 @@
 import { strict } from 'yargs'
 import { version, name as thisPkgName, description as thisPkgDescription } from '../package.json'
-import { runSync } from './run'
-import captialCase from './captialCase'
+import { runSync } from '../src/run'
 
 const {
   _: [name],
@@ -70,18 +69,4 @@ const {
 // Convert '.' to ' ' since windows doesn't allow them in arguments.
 const description = unformattedDesc.replace(/\./g, ' ').trim()
 
-export { name, author, username, type, description, scoped, tests }
-
-/** Log, if requested */
-export const log = verbose
-  ? (...strs: string[]) => verbose && console.log(...strs)
-  : () => { }
-
-/** Update string to use template replacements */
-export const templates = (str: string) => str
-  .replace(/_YEAR_/g, new Date().getFullYear().toString())
-  .replace(/_AUTHOR_/g, author)
-  .replace(/_SCOPE_/g, scoped ? `@${username}/` : '')
-  .replace(/_NAME_/g, name)
-  .replace(/_DESC_/g, description)
-  .replace(/_NICENAME_/g, captialCase(name))
+export { name, verbose, author, username, type, description, scoped, tests }
