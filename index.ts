@@ -26,13 +26,12 @@ export default async function ({ name, author, username, type, description, scop
     ]
 
   let scripts: { [target: string]: string } = {
+    release: 'np',
+    test: 'mocha -r should -r should-sinon dist/npm/test/*.js',
     build: 'tsc',
 
     pretest: 'npm run build',
-    test: 'mocha -r should -r should-sinon dist/npm/test/*.js',
-
     prerelease: 'npm run build',
-    release: 'np',
   }
 
   switch (type) {
@@ -60,12 +59,15 @@ export default async function ({ name, author, username, type, description, scop
 
     case 'esm-demo': // Has demo or is an app
       scripts = {
-        ...scripts,
+        // Deploy demo in branch, always when releasing a new version
+        deploy: 'gh-pages -d demo',
 
         // import maps
         // TODO find a cross-platform friendly import map generator
         importmap: 'importly --host unpkg < package.json > demo/import-map.json',
         'win:importmap': 'type package.json | importly --host unpkg > demo/import-map.json',
+
+        ...scripts,
 
         // Conversion for Prod/Dev HTML for demo
         'html:dev:real': 'replace "dev-only type=dev-only-" "dev-only type=" demo/index.html',
@@ -74,10 +76,8 @@ export default async function ({ name, author, username, type, description, scop
         'html:prod:real': 'replace "prod-only type=prod-only-" "prod-only type=" demo/index.html',
         'html:prod:shim': 'replace "prod-only type=" "prod-only type=prod-only-" demo/index.html',
 
-        // Deploy demo in branch, always when releasing a new version
         predeploy: 'npm run build:esm && npm run html:dev:shim && npm run html:prod:real',
         postdeploy: 'npm run html:dev:real && npm run html:prod:shim',
-        deploy: 'gh-pages -d demo',
 
         prerelease: 'npm run build',
         postrelease: 'npm run deploy', // Causes a duplicate build:esm :(
